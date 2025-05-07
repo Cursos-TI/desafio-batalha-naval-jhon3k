@@ -1,82 +1,72 @@
 #include <stdio.h>
 
-int main() {
-    int tabuleiro[10][10] = {0}; // Inicializa tudo com 0
-    int linha, coluna;
-    char colunaChar;
+#define TAM 10
+#define NAVIO 3
 
-    // POSICIONAR NAVIO HORIZONTAL
-    printf("Posicione o navio HORIZONTAL (3 posições).\n");
-    while (1) {
-        printf("Digite a linha (1-10): ");
-        scanf("%d", &linha);
-        printf("Digite a coluna inicial (A-H): "); // A-H para caber 3 colunas
-        scanf(" %c", &colunaChar);
-        coluna = colunaChar - 'A';
-
-        if (linha >= 1 && linha <= 10 && coluna >= 0 && coluna <= 7) {
-            linha -= 1; // Ajusta para índice 0
-            // Posiciona o navio horizontal
-            if (tabuleiro[linha][coluna] == 0 &&
-                tabuleiro[linha][coluna + 1] == 0 &&
-                tabuleiro[linha][coluna + 2] == 0) {
-                for (int i = 0; i < 3; i++) {
-                    tabuleiro[linha][coluna + i] = 3;
-                }
-                break;
-            } else {
-                printf("As posições já estão ocupadas. Tente novamente.\n");
-            }
-        } else {
-            printf("Coordenada inválida. Tente novamente.\n");
+// Inicializa todas as posições do tabuleiro com 0 (representando água)
+void inicializarTabuleiro(int tabuleiro[TAM][TAM]) {
+    for (int i = 0; i < TAM; i++) {
+        for (int j = 0; j < TAM; j++) {
+            tabuleiro[i][j] = 0;
         }
     }
+}
 
-    // POSICIONAR NAVIO VERTICAL
-    printf("\nPosicione o navio VERTICAL (3 posições).\n");
-    while (1) {
-        printf("Digite a linha inicial (1-8): "); // 1-8 para caber 3 linhas
-        scanf("%d", &linha);
-        printf("Digite a coluna (A-J): ");
-        scanf(" %c", &colunaChar);
-        coluna = colunaChar - 'A';
+// Verifica se é possível posicionar um navio de determinado tamanho e direção sem sair dos limites ou sobrepor outro navio
+int podeColocarNavio(int tabuleiro[TAM][TAM], int linha, int coluna, int tamanho, char direcao) {
+    for (int i = 0; i < tamanho; i++) {
+        int l = linha, c = coluna;
+        if (direcao == 'H') c += i;
+        else if (direcao == 'V') l += i;
+        else if (direcao == 'D') { l += i; c += i; }
+        else if (direcao == 'E') { l += i; c -= i; }
 
-        if (linha >= 1 && linha <= 8 && coluna >= 0 && coluna <= 9) {
-            linha -= 1;
-            // Verifica se as posições estão livres
-            if (tabuleiro[linha][coluna] == 0 &&
-                tabuleiro[linha + 1][coluna] == 0 &&
-                tabuleiro[linha + 2][coluna] == 0) {
-                for (int i = 0; i < 3; i++) {
-                    tabuleiro[linha + i][coluna] = 3;
-                }
-                break;
-            } else {
-                printf("As posições já estão ocupadas. Tente novamente.\n");
-            }
-        } else {
-            printf("Coordenada inválida. Tente novamente.\n");
-        }
+        if (l < 0 || l >= TAM || c < 0 || c >= TAM || tabuleiro[l][c] != 0)
+            return 0;
     }
+    return 1;
+}
 
-    // EXIBIR TABULEIRO
-    printf("\nTabuleiro Batalha Naval:\n\n");
+// Posiciona o navio no tabuleiro nas coordenadas fornecidas com a direção e tamanho especificados
+void colocarNavio(int tabuleiro[TAM][TAM], int linha, int coluna, int tamanho, char direcao) {
+    for (int i = 0; i < tamanho; i++) {
+        if (direcao == 'H') tabuleiro[linha][coluna + i] = NAVIO;
+        else if (direcao == 'V') tabuleiro[linha + i][coluna] = NAVIO;
+        else if (direcao == 'D') tabuleiro[linha + i][coluna + i] = NAVIO;
+        else if (direcao == 'E') tabuleiro[linha + i][coluna - i] = NAVIO;
+    }
+}
 
-    // Cabeçalho com letras A-J
+// Exibe o tabuleiro no console com cabeçalhos de linha (1-10) e coluna (A-J)
+void exibirTabuleiro(int tabuleiro[TAM][TAM]) {
     printf("   ");
-    for (char c = 'A'; c <= 'J'; c++) {
+    for (char c = 'A'; c < 'A' + TAM; c++) {
         printf(" %c", c);
     }
     printf("\n");
 
-    // Corpo do tabuleiro
-    for (int i = 0; i < 10; i++) {
-        printf("%2d ", i + 1); // rótulo da linha
-        for (int j = 0; j < 10; j++) {
+    for (int i = 0; i < TAM; i++) {
+        printf("%2d ", i + 1);
+        for (int j = 0; j < TAM; j++) {
             printf(" %d", tabuleiro[i][j]);
         }
         printf("\n");
     }
+}
+
+int main() {
+    int tabuleiro[TAM][TAM];
+    inicializarTabuleiro(tabuleiro);
+
+    // Dois navios horizontais/verticais
+    if (podeColocarNavio(tabuleiro, 0, 0, 3, 'H')) colocarNavio(tabuleiro, 0, 0, 3, 'H');
+    if (podeColocarNavio(tabuleiro, 2, 2, 3, 'V')) colocarNavio(tabuleiro, 2, 2, 3, 'V');
+
+    // Dois navios diagonais
+    if (podeColocarNavio(tabuleiro, 4, 0, 3, 'D')) colocarNavio(tabuleiro, 4, 0, 3, 'D');
+    if (podeColocarNavio(tabuleiro, 0, 9, 3, 'E')) colocarNavio(tabuleiro, 0, 9, 3, 'E');
+
+    exibirTabuleiro(tabuleiro);
 
     return 0;
 }
